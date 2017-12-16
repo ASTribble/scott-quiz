@@ -112,38 +112,50 @@ const STORE = {
 function generateQuestion(i){
   //this pulls out the object at QUESTIONS at index i
   const question = QUESTIONS[i];
-  console.log('QUESTIONS[i] =', question);
+  console.log('QUESTIONS[i] =', question.answers);
   //this is going to return a string with html markers with auto-filled
   //questionText and answers
-  const questionBlock = 
-    console.log(questionBlock);
-  }
-  // return `
-  //   <form>
-  //   <div class="answer-choice">${question.questionText}</div>
-  //   <input type="radio" name="choice" value="0" class="choice" id="choice-1" required>
-  //     <label for="choice-1">${question.answers[0]}</label>
-  //   <input type="radio" name="choice" value="1" class="choice" id="choice-2" required>
-  //     <label for="choice-2">${question.answers[1]}</label>
-  //   <input type="radio" name="choice" value="2" class="choice" id="choice-3" required>
-  //     <label for="choice-3">${question.answers[2]}</label>
-  //   <input type="radio" name="choice" value="3" class="choice" id="choice-4" required>
-  //     <label for="choice-4">${question.answers[3]}</label>      
-  // </div>
-  // ${generateButton(STORE.button.class, STORE.button.label)}
-  // </form>
-  // `;
+  const answerBlock = makeAnswerBlock(question.answers);
+  console.log(answerBlock);
+  return `
+  <form class='question' id='question'>
+    <h2>${question.questionText}</h2>
+    <fieldset form='question' class='answers'>
+    ${answerBlock}
+    </fieldset>
+    ${generateButton(STORE.button.class, STORE.button.label)}
+  </form>
+  `;
 }
 
+// return `
+//   <form>
+//   <div class="answer-choice">${question.questionText}</div>
+//   <input type="radio" name="choice" value="0" class="choice" id="choice-1" required>
+//     <label for="choice-1">${question.answers[0]}</label>
+//   <input type="radio" name="choice" value="1" class="choice" id="choice-2" required>
+//     <label for="choice-2">${question.answers[1]}</label>
+//   <input type="radio" name="choice" value="2" class="choice" id="choice-3" required>
+//     <label for="choice-3">${question.answers[2]}</label>
+//   <input type="radio" name="choice" value="3" class="choice" id="choice-4" required>
+//     <label for="choice-4">${question.answers[3]}</label>      
+// </div>
+// ${generateButton(STORE.button.class, STORE.button.label)}
+// </form>
+// `;
+// }
+
 //this will return a string of answer choices based on the length of the given answer array
-function makeQuestionBlock(answers) {
-  for (let i = 0; i < answers.length; i++) {
-    return `<input type="radio" name="choice" value=${i} class="choice" id="choice-${i}" required>
-  //     <label for="choice-${i}">${answers[i]}</label>`;
-  };
+function makeAnswerBlock(answers) {
+  const answersString = answers.map(function(answer){
+    return `<input type="radio" name="choice" value=${answers.indexOf(answer)} class="choice" id="choice-${answers.indexOf(answer)}" required>
+    <label for="choice-${answers.indexOf(answer)}">${answer}</label>`;
+  });
+  return answersString.join('');
+} 
 
 
-  //this creates a button with a specific class and text
+//this creates a button with a specific class and text
 function generateButton(buttonClass, text) {
   return `<button class="${buttonClass}">${text}</button>`;
 }
@@ -242,7 +254,8 @@ function renderResultsView(){
   <h1 class='result-title'>You Did It!!!!!</h1>
   <div class='results'>You got ${STORE.correctAnswerTotal} out of ${QUESTIONS.length} right!</div>
   <button class=${STORE.button.class}>${STORE.button.label}</button>
-  `;}
+  `;
+}
 
 function renderCurrentState() {
   return `

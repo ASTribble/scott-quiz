@@ -8,7 +8,7 @@
     border: 1px solid black;
     margin-left: auto;
     margin-right: auto;
-    padding-bottom: 50px;
+    padding:0em 1em 1em;
 }
 
 h1 {
@@ -46,4 +46,8 @@ button {
 button:hover {
     background-color: black;
     color:white;
+}
+
+fieldset{
+    border: none;
 }
