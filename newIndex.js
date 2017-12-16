@@ -1,5 +1,71 @@
 
 'use strict';
+//make API request for session token
+
+let SESSION_TOKEN;
+
+function getSessionToken() {
+  // {response_code: 0, response_message: "Token Generated Successfully!", token: "16f0d44d6d4be14927278b2700b7e75261ef6c22cb0741488415656ec1ba886b"}
+  $.getJSON('https://opentdb.com/api_token.php?command=request', function (data) {
+    SESSION_TOKEN = data.token;
+    console.log(SESSION_TOKEN);
+    return SESSION_TOKEN;
+  });
+}
+
+getSessionToken();
+
+function getQuestionData(amt) {
+  $.getJSON(`https://opentdb.com/api.php?amount=${amt}&type=multiple&${SESSION_TOKEN}`, questionArray);
+}
+
+// const questionArray = function (data) {
+//   console.log(data);
+// };
+
+// getQuestionData(1);
+const API_QUESTIONS = [];
+
+const questionArray = function (data) {
+  console.log('question array ran', data.results);
+  data.results.forEach(function (result) {
+    const questionData = result;
+    const question = {
+    //   questionText: 'What is 2+2?',
+    //   answers: [1, 2, 3, 4],
+    //   correctAnswerIndex: 3
+    // },      
+      questiontext: questionData.question,
+      difficulty: questionData.difficulty,
+      wrongAnswers: questionData.incorrect_answers,
+      correctAnswer: questionData.correct_answer,
+      answers: makeAnswerArray(questionData.incorrect_answers, questionData.correct_answer),
+      // correctAnswerIndex: getRandomIndex(question.incorrect_answers)
+    };
+    console.log('the answers are', question.answers);
+    console.log('the question parts are', question);
+    API_QUESTIONS.push(question);
+  });
+};
+
+
+function makeAnswerArray(incorrectAnswers, correctAnswer) {
+  console.log('makeAnswerArray ran');
+  let answersArray = [...incorrectAnswers];
+  const randomIndex = Math.floor(Math.random() * (answersArray.length + 1));
+  answersArray.splice(randomIndex, 0, correctAnswer);
+  return answersArray;
+}
+
+getQuestionData(1);
+
+
+// make api request for questions
+// populate quiz using API questions
+// add user answer tracking to store - maybe not necessary
+// add dropdown for user question number selection
+// add dropdown for user category selection
+// organize for OOP
 
 const QUESTIONS = [
   {
@@ -45,28 +111,39 @@ const STORE = {
 
 function generateQuestion(i){
   //this pulls out the object at QUESTIONS at index i
-  const index = QUESTIONS[i];
-  console.log('QUESTIONS[i] =', index);
+  const question = QUESTIONS[i];
+  console.log('QUESTIONS[i] =', question);
   //this is going to return a string with html markers with auto-filled
   //questionText and answers
-  return `
-    <form>
-    <div class="answer-choice">${index.questionText}</div>
-    <input type="radio" name="choice" value="0" class="choice" id="choice-1" required>
-      <label for="choice-1">${index.answers[0]}</label>
-    <input type="radio" name="choice" value="1" class="choice" id="choice-2" required>
-      <label for="choice-2">${index.answers[1]}</label>
-    <input type="radio" name="choice" value="2" class="choice" id="choice-3" required>
-      <label for="choice-3">${index.answers[2]}</label>
-    <input type="radio" name="choice" value="3" class="choice" id="choice-4" required>
-      <label for="choice-4">${index.answers[3]}</label>      
-  </div>
-  ${generateButton(STORE.button.class, STORE.button.label)}
-  </form>
-  `;
+  const questionBlock = 
+    console.log(questionBlock);
+  }
+  // return `
+  //   <form>
+  //   <div class="answer-choice">${question.questionText}</div>
+  //   <input type="radio" name="choice" value="0" class="choice" id="choice-1" required>
+  //     <label for="choice-1">${question.answers[0]}</label>
+  //   <input type="radio" name="choice" value="1" class="choice" id="choice-2" required>
+  //     <label for="choice-2">${question.answers[1]}</label>
+  //   <input type="radio" name="choice" value="2" class="choice" id="choice-3" required>
+  //     <label for="choice-3">${question.answers[2]}</label>
+  //   <input type="radio" name="choice" value="3" class="choice" id="choice-4" required>
+  //     <label for="choice-4">${question.answers[3]}</label>      
+  // </div>
+  // ${generateButton(STORE.button.class, STORE.button.label)}
+  // </form>
+  // `;
 }
 
-//this creates a button with a specific class and text
+//this will return a string of answer choices based on the length of the given answer array
+function makeQuestionBlock(answers) {
+  for (let i = 0; i < answers.length; i++) {
+    return `<input type="radio" name="choice" value=${i} class="choice" id="choice-${i}" required>
+  //     <label for="choice-${i}">${answers[i]}</label>`;
+  };
+
+
+  //this creates a button with a specific class and text
 function generateButton(buttonClass, text) {
   return `<button class="${buttonClass}">${text}</button>`;
 }
