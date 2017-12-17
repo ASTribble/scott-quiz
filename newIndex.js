@@ -24,6 +24,7 @@ function getQuestionData(amt) {
 // };
 
 // getQuestionData(1);
+// https://opentdb.com/api.php?amount=10&category=17&difficulty=medium
 const API_QUESTIONS = [];
 
 const questionArray = function (data) {
@@ -219,6 +220,8 @@ function renderStartView() {
     <header class="title">
         <h1>Welcome to our Very Very Basic Math Quiz</h1>
     </header>
+    <h2>How many questions would you like to answer?</h2>
+    <input type="text" class="quiz-length" placeholder="1-50"></input>
     <button class=${STORE.button.class}>${STORE.button.label}</button>
     `;
 }
@@ -276,6 +279,7 @@ function handleStartButtonClick(){
     event.preventDefault();
     // we'll check if the event handler works
     console.log('the start button was pushed');
+
     getQuestionData(5);
     //we change the store to the next view
     STORE.view = 'questions';
