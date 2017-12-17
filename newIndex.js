@@ -30,16 +30,19 @@ const questionArray = function (data) {
   console.log('question array ran', data.results);
   data.results.forEach(function (result) {
     const questionData = result;
+    const randomIndex = Math.floor(Math.random() * (questionData.incorrect_answers.length + 1));
     const question = {
     //   questionText: 'What is 2+2?',
     //   answers: [1, 2, 3, 4],
     //   correctAnswerIndex: 3
     // },      
-      questiontext: questionData.question,
+      questionText: questionData.question,
       difficulty: questionData.difficulty,
       wrongAnswers: questionData.incorrect_answers,
+      correctAnswerIndex: randomIndex,
       correctAnswer: questionData.correct_answer,
-      answers: makeAnswerArray(questionData.incorrect_answers, questionData.correct_answer),
+      answers: makeAnswerArray(questionData.incorrect_answers, questionData.correct_answer, randomIndex),
+
       // correctAnswerIndex: getRandomIndex(question.incorrect_answers)
     };
     console.log('the answers are', question.answers);
@@ -48,16 +51,14 @@ const questionArray = function (data) {
   });
 };
 
-
-function makeAnswerArray(incorrectAnswers, correctAnswer) {
+function makeAnswerArray(incorrectAnswers, correctAnswer, randomIndex) {
   console.log('makeAnswerArray ran');
   let answersArray = [...incorrectAnswers];
-  const randomIndex = Math.floor(Math.random() * (answersArray.length + 1));
   answersArray.splice(randomIndex, 0, correctAnswer);
   return answersArray;
 }
 
-getQuestionData(1);
+
 
 
 // make api request for questions
@@ -166,13 +167,14 @@ function generateFeedback(i){
   //this is giving us the value at QUESTIONS[i]
   const correctAnswer = QUESTIONS[i].correctAnswerIndex; 
   console.log('correct answer index', correctAnswer);
-  STORE.userChoice = $('input[name=\'choice\']:checked').val();
+  STORE.userChoice = parseInt($('input[name=\'choice\']:checked').val());
+  console.log('the typeof userChoice is',  typeof STORE.userChoice);
   console.log('indexUserChoice is', STORE.userChoice);
   let resultMessage; 
   if(STORE.userChoice !== correctAnswer){
     resultMessage = 'You were Wrong!';
   }
-  if (STORE.userChoice == correctAnswer){
+  if (STORE.userChoice === correctAnswer){
     resultMessage = 'You were Correct!';
     STORE.correctAnswerTotal++;
   }
@@ -274,6 +276,7 @@ function handleStartButtonClick(){
     event.preventDefault();
     // we'll check if the event handler works
     console.log('the start button was pushed');
+    getQuestionData(5);
     //we change the store to the next view
     STORE.view = 'questions';
     //we set question number to index 0
