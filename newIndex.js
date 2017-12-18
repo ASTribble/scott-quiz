@@ -14,8 +14,6 @@ function getSessionToken() {
   });
 }
 
-getSessionToken();
-
 const quizLength = function(){
   console.log('quizLength ran');
   const length = parseInt($('.quiz-length').val());
@@ -45,7 +43,7 @@ function getQuestionData(length, category) {
 
 // getQuestionData(1);
 // https://opentdb.com/api.php?amount=10&category=17&difficulty=medium
-const API_QUESTIONS = [];
+let API_QUESTIONS = [];
 
 const questionArray = function (data) {
   console.log('question array ran', data.results);
@@ -152,7 +150,7 @@ function generateQuestion(i){
     `;
   } 
   else{
-    return `Quiz is Loading...`
+    return 'Quiz is Loading...';
   }
 }
 
@@ -397,6 +395,7 @@ function handleStartOver() {
     STORE.button = {class: 'start-button', label: 'Start Quiz' };
     STORE.showFeedback = false;
     STORE.correctAnswerTotal = 0;
+    API_QUESTIONS = [];
     renderPage();
   }
   );
