@@ -1,5 +1,6 @@
 
 'use strict';
+/* global $ */
 //make API request for session token
 
 let SESSION_TOKEN;
@@ -15,8 +16,27 @@ function getSessionToken() {
 
 getSessionToken();
 
-function getQuestionData(amt) {
-  $.getJSON(`https://opentdb.com/api.php?amount=${amt}&type=multiple&${SESSION_TOKEN}`, questionArray);
+const quizLength = function(){
+  console.log('quizLength ran');
+  const length = parseInt($('.quiz-length').val());
+  console.log('quizLength is', length);
+  return length;
+};
+
+
+// STORE.userChoice = parseInt($('input[name=\'choice\']:checked').val());
+const quizCategory = function(){
+  console.log('quiz category ran');
+  // select#foo option: checked
+  const category = parseInt($('.select-category option:checked').val());
+  console.log('category id is:', category);
+  return category;
+};
+
+
+function getQuestionData(length, category) {
+  console.log('getQuestionData ran');
+  $.getJSON(`https://opentdb.com/api.php?amount=${length}&category=${category}&type=multiple&${SESSION_TOKEN}`, questionArray);
 }
 
 // const questionArray = function (data) {
@@ -49,6 +69,7 @@ const questionArray = function (data) {
     console.log('the answers are', question.answers);
     console.log('the question parts are', question);
     API_QUESTIONS.push(question);
+    renderPage();
   });
 };
 
@@ -113,21 +134,26 @@ const STORE = {
 
 function generateQuestion(i){
   //this pulls out the object at QUESTIONS at index i
-  const question = QUESTIONS[i];
-  console.log('QUESTIONS[i] =', question.answers);
-  //this is going to return a string with html markers with auto-filled
-  //questionText and answers
-  const answerBlock = makeAnswerBlock(question.answers);
-  console.log(answerBlock);
-  return `
-  <form class='question' id='question'>
-    <h2>${question.questionText}</h2>
-    <fieldset form='question' class='answers'>
-    ${answerBlock}
-    </fieldset>
-    ${generateButton(STORE.button.class, STORE.button.label)}
-  </form>
-  `;
+  const question = API_QUESTIONS[i];
+  if(API_QUESTIONS.length > 0){
+    console.log('QUESTIONS[i] =', question.answers);
+    //this is going to return a string with html markers with auto-filled
+    //questionText and answers
+    const answerBlock = makeAnswerBlock(question.answers);
+    console.log(answerBlock);
+    return `
+      <form class='question' id='question'>
+        <h2>${question.questionText}</h2>
+        <fieldset form='question' class='answers'>
+        ${answerBlock}
+        </fieldset>
+        ${generateButton(STORE.button.class, STORE.button.label)}
+      </form>
+    `;
+  } 
+  else{
+    return `Quiz is Loading...`
+  }
 }
 
 // return `
@@ -166,7 +192,7 @@ function generateButton(buttonClass, text) {
 function generateFeedback(i){
   console.log('Argument of generateFeedback', i);
   //this is giving us the value at QUESTIONS[i]
-  const correctAnswer = QUESTIONS[i].correctAnswerIndex; 
+  const correctAnswer = API_QUESTIONS[i].correctAnswerIndex; 
   console.log('correct answer index', correctAnswer);
   STORE.userChoice = parseInt($('input[name=\'choice\']:checked').val());
   console.log('the typeof userChoice is',  typeof STORE.userChoice);
@@ -182,7 +208,7 @@ function generateFeedback(i){
   return `
     <div class="feedback">
             <h2 class="answer-feedback" id="user-answer">${resultMessage}</h2>
-            <h2 class="answer-feedback" id="correct-answer">The Correct Answer was: ${QUESTIONS[i].answers[correctAnswer]}</h2>
+            <h2 class="answer-feedback" id="correct-answer">The Correct Answer was: ${API_QUESTIONS[i].answers[correctAnswer]}</h2>
         </div>`;
 }
 
@@ -213,6 +239,11 @@ function renderPage() {
   }
 }
   
+// <select name="text"> <!--Supplement an id here instead of using 'text'-->
+//   <option value="value1">Value 1</option>
+//   <option value="value2" selected>Value 2</option>
+//   <option value="value3">Value 3</option>
+// </select>
 
 function renderStartView() {
   // render title and button
@@ -220,8 +251,19 @@ function renderStartView() {
     <header class="title">
         <h1>Welcome to our Very Very Basic Math Quiz</h1>
     </header>
-    <h2>How many questions would you like to answer?</h2>
-    <input type="text" class="quiz-length" placeholder="1-50"></input>
+    <form class='initialize-quiz' id='initialize-quiz'>
+      <fieldset form='initialize-quiz' class='initialize-quiz'>
+        <lable for='quiz-length'>How many questions would you like to answer?</label>
+          <input type="text" id="quiz-length" class="quiz-length" value="5"></input>
+        <lable for='select-category'>In which category?</label>
+        <select name='select-category' class='select-category' id='select-category' form='initialize-quiz'>
+          <option value='9' checked>General Knowledge</option>
+          <option value='17'>Science and Nature</option>
+          <option value='25'>Art</option>
+          <option value='22'>Geography</option>
+        </select>
+      </fieldset>
+    </form>
     <button class=${STORE.button.class}>${STORE.button.label}</button>
     `;
 }
@@ -257,7 +299,7 @@ function renderResultsView(){
   //make a start-over button
   return `
   <h1 class='result-title'>You Did It!!!!!</h1>
-  <div class='results'>You got ${STORE.correctAnswerTotal} out of ${QUESTIONS.length} right!</div>
+  <div class='results'>You got ${STORE.correctAnswerTotal} out of ${API_QUESTIONS.length} right!</div>
   <button class=${STORE.button.class}>${STORE.button.label}</button>
   `;
 }
@@ -265,12 +307,13 @@ function renderResultsView(){
 function renderCurrentState() {
   return `
   <div class="current-state">
-  <p class="current-question">Question: ${STORE.currentQuestion + 1} out of ${QUESTIONS.length}</p>
-  <p class="current-score">Score: ${STORE.correctAnswerTotal} out of ${QUESTIONS.length}</p>
+  <p class="current-question">Question: ${STORE.currentQuestion + 1} out of ${API_QUESTIONS.length}</p>
+  <p class="current-score">Score: ${STORE.correctAnswerTotal} out of ${API_QUESTIONS.length}</p>
   </div>`;
 }
 
 // event handlers //////////////////////////////////////////////
+
 
 function handleStartButtonClick(){
 // this will set-up event handler for original button
@@ -279,8 +322,7 @@ function handleStartButtonClick(){
     event.preventDefault();
     // we'll check if the event handler works
     console.log('the start button was pushed');
-
-    getQuestionData(5);
+    getQuestionData(quizLength(), quizCategory());
     //we change the store to the next view
     STORE.view = 'questions';
     //we set question number to index 0
@@ -288,12 +330,13 @@ function handleStartButtonClick(){
     //change the STORE.button to a submit-answer 
     STORE.button = {class:'submit-answer', label: 'Submit Answer'};
     console.log(STORE);
+  
     //then we re-render the page for the new store 
     //to show the first question page
     renderPage();
-  }
-  );
+  });
 }
+
 
 function handleSubmitAnswerButtonClicked() {
   //listen for the .submit-answer button click
@@ -302,7 +345,7 @@ function handleSubmitAnswerButtonClicked() {
     event.preventDefault();
     //check if the handler works
     console.log('submit answer button was clicked');
-    if(STORE.currentQuestion === QUESTIONS.length-1) {
+    if(STORE.currentQuestion === API_QUESTIONS.length-1) {
       STORE.button = {class: 'view-results', label: 'View Results'};
     } else {
       STORE.button = {class: 'next-question', label: 'Next Question'};
