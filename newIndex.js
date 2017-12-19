@@ -2,40 +2,50 @@
 'use strict';
 /* global $ */
 //make API request for session token
+class ApiCall {
+  constructor(){
+    this.sessionToken = null;
+  }
 
-let SESSION_TOKEN;
+  getSessionToken() {
+    $.getJSON('https://opentdb.com/api_token.php?command=request', function (data) {
+      this.sessionToken = data.token;
+      console.log(this.sessionToken);
+      return this.sessionToken;
+    });
+  }
 
-function getSessionToken() {
-  // {response_code: 0, response_message: "Token Generated Successfully!", token: "16f0d44d6d4be14927278b2700b7e75261ef6c22cb0741488415656ec1ba886b"}
-  $.getJSON('https://opentdb.com/api_token.php?command=request', function (data) {
-    SESSION_TOKEN = data.token;
-    console.log(SESSION_TOKEN);
-    return SESSION_TOKEN;
-  });
+  quizLength() {
+    console.log('quizLength ran');
+    const length = parseInt($('.quiz-length').val());
+    console.log('quizLength is', length);
+    return length;
+  }
+
+  quizCategory() {
+    console.log('quiz category ran');
+    // select#foo option: checked
+    const category = parseInt($('.select-category option:checked').val());
+    console.log('category id is:', category);
+    return category;
+  }
+
+  getQuestionData(length, category) {
+    console.log('getQuestionData ran');
+    $.getJSON(`https://opentdb.com/api.php?amount=${length}&category=${category}&type=multiple&${this.sessionToken}`, questionArray);
+  }
+//this curly bracket is the end of the apiCalls 
 }
 
-const quizLength = function(){
-  console.log('quizLength ran');
-  const length = parseInt($('.quiz-length').val());
-  console.log('quizLength is', length);
-  return length;
-};
+
+
 
 
 // STORE.userChoice = parseInt($('input[name=\'choice\']:checked').val());
-const quizCategory = function(){
-  console.log('quiz category ran');
-  // select#foo option: checked
-  const category = parseInt($('.select-category option:checked').val());
-  console.log('category id is:', category);
-  return category;
-};
 
 
-function getQuestionData(length, category) {
-  console.log('getQuestionData ran');
-  $.getJSON(`https://opentdb.com/api.php?amount=${length}&category=${category}&type=multiple&${SESSION_TOKEN}`, questionArray);
-}
+
+
 
 // const questionArray = function (data) {
 //   console.log(data);
@@ -320,7 +330,7 @@ function handleStartButtonClick(){
     event.preventDefault();
     // we'll check if the event handler works
     console.log('the start button was pushed');
-    getQuestionData(quizLength(), quizCategory());
+    game1.getQuestionData(game1.quizLength(), game1.quizCategory());
     //we change the store to the next view
     STORE.view = 'questions';
     //we set question number to index 0
@@ -402,12 +412,13 @@ function handleStartOver() {
 }
 
 
-
+const game1 = new ApiCall;
 
 
 //this is an anonymous function that will run automatically
 //after the whole document is loaded.  that's why it's at the end
 $(function () {
+  game1.getSessionToken();
   renderPage();
   handleStartButtonClick();
   handleSubmitAnswerButtonClicked();
