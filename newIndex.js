@@ -6,23 +6,23 @@ class ApiCall {
   constructor(){
     this.sessionToken = null;
   }
-
+  
   getSessionToken() {
     $.getJSON('https://opentdb.com/api_token.php?command=request', function (data) {
       this.sessionToken = data.token;
       console.log(this.sessionToken);
-      return this.sessionToken;
+      renderPage();
     });
   }
 
-  quizLength() {
+  _quizLength() {
     console.log('quizLength ran');
     const length = parseInt($('.quiz-length').val());
     console.log('quizLength is', length);
     return length;
   }
 
-  quizCategory() {
+  _quizCategory() {
     console.log('quiz category ran');
     // select#foo option: checked
     const category = parseInt($('.select-category option:checked').val());
@@ -30,19 +30,12 @@ class ApiCall {
     return category;
   }
 
-  getQuestionData(length, category) {
+  getQuestionData() {
     console.log('getQuestionData ran');
-    $.getJSON(`https://opentdb.com/api.php?amount=${length}&category=${category}&type=multiple&${this.sessionToken}`, questionArray);
+    $.getJSON(`https://opentdb.com/api.php?amount=${this._quizLength()}&category=${this._quizCategory()}&type=multiple&${this.sessionToken}`, questionArray);
   }
 //this curly bracket is the end of the apiCalls 
 }
-
-
-
-
-
-// STORE.userChoice = parseInt($('input[name=\'choice\']:checked').val());
-
 
 
 
@@ -163,6 +156,7 @@ function generateQuestion(i){
     return 'Quiz is Loading...';
   }
 }
+//  </fieldset>
 
 // return `
 //   <form>
@@ -230,6 +224,9 @@ function generateFeedback(i){
 function renderPage() {
   
   if (STORE.view === 'start') {
+    if (game1.sessionToken) {
+      $('start-button').attr('disabled', false);
+    }
     $('.page').html(renderStartView());
   }
   if (STORE.view === 'questions') {
@@ -330,7 +327,7 @@ function handleStartButtonClick(){
     event.preventDefault();
     // we'll check if the event handler works
     console.log('the start button was pushed');
-    game1.getQuestionData(game1.quizLength(), game1.quizCategory());
+    game1.getQuestionData();
     //we change the store to the next view
     STORE.view = 'questions';
     //we set question number to index 0
