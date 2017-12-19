@@ -1,10 +1,16 @@
 
 'use strict';
 /* global $ */
-//make API request for session token
+
+let QUESTION_ARRAY = [];
+let API_QUESTIONS = [];
+//make API requests for session token and question content
 class ApiCall {
   constructor(){
     this.sessionToken = null;
+    this.questionCount = null;
+    this.quizLength = null;
+    this.quizCategory = null;
   }
   
   getSessionToken() {
@@ -15,14 +21,14 @@ class ApiCall {
     });
   }
 
-  _quizLength() {
+  _setQuizLength() {
     console.log('quizLength ran');
     const length = parseInt($('.quiz-length').val());
     console.log('quizLength is', length);
     return length;
   }
 
-  _quizCategory() {
+  _setQuizCategory() {
     console.log('quiz category ran');
     // select#foo option: checked
     const category = parseInt($('.select-category option:checked').val());
@@ -30,9 +36,25 @@ class ApiCall {
     return category;
   }
 
+  setQuizLengthAndCategory(){
+    this.quizLength = this._setQuizLength();
+    this.quizCategory = this._setQuizCategory();
+  }
+
+  _makeNewQuestion(questionData){
+    console.log('makeNewQuestion ran');
+    QUESTION_ARRAY[this.questionCount] = new Question(questionData);
+    this.questionCount++;
+    renderPage();
+  }
+
   getQuestionData() {
+    this.questionCount = 0;
     console.log('getQuestionData ran');
-    $.getJSON(`https://opentdb.com/api.php?amount=${this._quizLength()}&category=${this._quizCategory()}&type=multiple&${this.sessionToken}`, questionArray);
+    const that = this;
+    $.getJSON(`https://opentdb.com/api.php?amount=1&category=${this.quizCategory}&type=multiple&${this.sessionToken}`, function(questionData){
+      that._makeNewQuestion(questionData);
+    });
   }
 //this curly bracket is the end of the apiCalls 
 }
@@ -40,85 +62,135 @@ class ApiCall {
 
 
 
-// const questionArray = function (data) {
-//   console.log(data);
-// };
+class Question {
+  constructor(questionData){
+    this.questionText = questionData.results[0].question;
+    this.difficulty = questionData.results[0].difficulty;
+    this.wrongAnswers = questionData.results[0].incorrect_answers;
+    this.correctAnswerIndex = this.randomIndex();
+    this.correctAnswer = questionData.results[0].correct_answer;
+    this.answers = this.makeAnswerArray();
+  }
 
+  randomIndex() {
+    console.log('randomIndex ran');
+    return Math.floor(Math.random() * (this.wrongAnswers.length + 1));
+  }
+//  let answersArray = [...incorrectAnswers];
+//   answersArray.splice(randomIndex, 0, correctAnswer);
+//   return answersArray;
+// }
+  makeAnswerArray() {
+    console.log('makeAnswerArray ran');
+    this.answers = [...this.wrongAnswers];
+    this.answers.splice(this.correctAnswerIndex, 0, this.correctAnswer);
+    return this.answers;
+  }
+
+  makeAnswerBlock() {
+    console.log('makeAnswerBlock ran');
+    const answersString = this.answers.map( (answer) => {
+      return `<input type="radio" name="choice" value=${this.answers.indexOf(answer)} class="choice" id="choice-${this.answers.indexOf(answer)}" required>
+    <label for="choice-${this.answers.indexOf(answer)}">${answer}</label>`;
+    });
+    return answersString.join('');
+  } 
+
+  makeQuestionString(){
+    console.log('QuestionString ran');
+    if(this.questionText){
+      return `
+      <form class='question' id='question'>
+        <h2>${this.questionText}</h2>
+        <fieldset form='question' class='answers'>
+        ${this.makeAnswerBlock()}
+        </fieldset>
+        ${generateButton(STORE.button.class, STORE.button.label)}
+      </form>
+    `;
+    } 
+    else {
+      return 'Quiz is Loading...';
+    }
+  }
+
+// this curly bracketis the end of the Questions class
+}
 // getQuestionData(1);
 // https://opentdb.com/api.php?amount=10&category=17&difficulty=medium
-let API_QUESTIONS = [];
-
-const questionArray = function (data) {
-  console.log('question array ran', data.results);
-  data.results.forEach(function (result) {
-    const questionData = result;
-    const randomIndex = Math.floor(Math.random() * (questionData.incorrect_answers.length + 1));
-    const question = {
-    //   questionText: 'What is 2+2?',
-    //   answers: [1, 2, 3, 4],
-    //   correctAnswerIndex: 3
-    // },      
-      questionText: questionData.question,
-      difficulty: questionData.difficulty,
-      wrongAnswers: questionData.incorrect_answers,
-      correctAnswerIndex: randomIndex,
-      correctAnswer: questionData.correct_answer,
-      answers: makeAnswerArray(questionData.incorrect_answers, questionData.correct_answer, randomIndex),
-
-      // correctAnswerIndex: getRandomIndex(question.incorrect_answers)
-    };
-    console.log('the answers are', question.answers);
-    console.log('the question parts are', question);
-    API_QUESTIONS.push(question);
-    renderPage();
-  });
-};
-
-function makeAnswerArray(incorrectAnswers, correctAnswer, randomIndex) {
-  console.log('makeAnswerArray ran');
-  let answersArray = [...incorrectAnswers];
-  answersArray.splice(randomIndex, 0, correctAnswer);
-  return answersArray;
-}
 
 
+// const questionArray = function (data) {
+//   console.log('question array ran', data.results);
+//   API_QUESTIONS = data.results.map(function (result) {
+//     const questionData = result;
+//     const randomIndex = Math.floor(Math.random() * (questionData.incorrect_answers.length + 1));
+//     const question = {
+//     //   questionText: 'What is 2+2?',
+//     //   answers: [1, 2, 3, 4],
+//     //   correctAnswerIndex: 3
+//     // },      
+//       questionText: questionData.question,
+//       difficulty: questionData.difficulty,
+//       wrongAnswers: questionData.incorrect_answers,
+//       correctAnswerIndex: randomIndex,
+//       correctAnswer: questionData.correct_answer,
+//       answers: makeAnswerArray(questionData.incorrect_answers, questionData.correct_answer, randomIndex),
+
+//       // correctAnswerIndex: getRandomIndex(question.incorrect_answers)
+//     };
+//     console.log('the answers are', question.answers);
+//     console.log('the question parts are', question);
+//     return question;
+//   });
+//   renderPage();
+// };
+
+// function makeAnswerArray(incorrectAnswers, correctAnswer, randomIndex) {
+//   console.log('makeAnswerArray ran');
+//   let answersArray = [...incorrectAnswers];
+//   answersArray.splice(randomIndex, 0, correctAnswer);
+//   return answersArray;
+// }
 
 
-// make api request for questions
-// populate quiz using API questions
-// add user answer tracking to store - maybe not necessary
-// add dropdown for user question number selection
-// add dropdown for user category selection
-// organize for OOP
 
-const QUESTIONS = [
-  {
-    questionText: 'What is 2+2?',
-    answers: [1, 2, 3, 4],
-    correctAnswerIndex: 3
-  },
-  {
-    questionText: 'What is 3-2?',
-    answers: [-10, 2, 1, 32],
-    correctAnswerIndex: 2
-  },
-  {
-    questionText: 'What is 1x1?',
-    answers: [1, 0, 100, 11],
-    correctAnswerIndex: 0
-  },
-  {
-    questionText: 'What is 25/5?',
-    answers: [125, 2, 5, 50],
-    correctAnswerIndex: 2
-  },
-  {
-    questionText: 'What is 6^2?',
-    answers: [36, 12, 6, 90],
-    correctAnswerIndex: 0
-  }
-];
-// / views: start, questions, feedback, lastQuestionFeedback, results
+
+// // make api request for questions
+// // populate quiz using API questions
+// // add user answer tracking to store - maybe not necessary
+// // add dropdown for user question number selection
+// // add dropdown for user category selection
+// // organize for OOP
+
+// const QUESTIONS = [
+//   {
+//     questionText: 'What is 2+2?',
+//     answers: [1, 2, 3, 4],
+//     correctAnswerIndex: 3
+//   },
+//   {
+//     questionText: 'What is 3-2?',
+//     answers: [-10, 2, 1, 32],
+//     correctAnswerIndex: 2
+//   },
+//   {
+//     questionText: 'What is 1x1?',
+//     answers: [1, 0, 100, 11],
+//     correctAnswerIndex: 0
+//   },
+//   {
+//     questionText: 'What is 25/5?',
+//     answers: [125, 2, 5, 50],
+//     correctAnswerIndex: 2
+//   },
+//   {
+//     questionText: 'What is 6^2?',
+//     answers: [36, 12, 6, 90],
+//     correctAnswerIndex: 0
+//   }
+// ];
+// // / views: start, questions, feedback, lastQuestionFeedback, results
 
 const STORE = {
   view: 'start',
@@ -131,32 +203,32 @@ const STORE = {
 
 
 
-// template /////////////////////////////////////////////////////
+// // template /////////////////////////////////////////////////////
 
-function generateQuestion(i){
-  //this pulls out the object at QUESTIONS at index i
-  const question = API_QUESTIONS[i];
-  if(API_QUESTIONS.length > 0){
-    console.log('QUESTIONS[i] =', question.answers);
-    //this is going to return a string with html markers with auto-filled
-    //questionText and answers
-    const answerBlock = makeAnswerBlock(question.answers);
-    console.log(answerBlock);
-    return `
-      <form class='question' id='question'>
-        <h2>${question.questionText}</h2>
-        <fieldset form='question' class='answers'>
-        ${answerBlock}
-        </fieldset>
-        ${generateButton(STORE.button.class, STORE.button.label)}
-      </form>
-    `;
-  } 
-  else{
-    return 'Quiz is Loading...';
-  }
-}
-//  </fieldset>
+// function generateQuestion(i){
+//   //this pulls out the object at QUESTIONS at index i
+//   const question = API_QUESTIONS[i];
+//   if(API_QUESTIONS.length > 0){
+//     console.log('QUESTIONS[i] =', question.answers);
+//     //this is going to return a string with html markers with auto-filled
+//     //questionText and answers
+//     const answerBlock = makeAnswerBlock(question.answers);
+//     console.log(answerBlock);
+//     return `
+//       <form class='question' id='question'>
+//         <h2>${question.questionText}</h2>
+//         <fieldset form='question' class='answers'>
+//         ${answerBlock}
+//         </fieldset>
+//         ${generateButton(STORE.button.class, STORE.button.label)}
+//       </form>
+//     `;
+//   } 
+//   else{
+//     return 'Quiz is Loading...';
+//   }
+// }
+
 
 // return `
 //   <form>
@@ -176,13 +248,13 @@ function generateQuestion(i){
 // }
 
 //this will return a string of answer choices based on the length of the given answer array
-function makeAnswerBlock(answers) {
-  const answersString = answers.map(function(answer){
-    return `<input type="radio" name="choice" value=${answers.indexOf(answer)} class="choice" id="choice-${answers.indexOf(answer)}" required>
-    <label for="choice-${answers.indexOf(answer)}">${answer}</label>`;
-  });
-  return answersString.join('');
-} 
+// function makeAnswerBlock(answers) {
+//   const answersString = answers.map(function(answer){
+//     return `<input type="radio" name="choice" value=${answers.indexOf(answer)} class="choice" id="choice-${answers.indexOf(answer)}" required>
+//     <label for="choice-${answers.indexOf(answer)}">${answer}</label>`;
+//   });
+//   return answersString.join('');
+// } 
 
 
 //this creates a button with a specific class and text
@@ -194,7 +266,7 @@ function generateButton(buttonClass, text) {
 function generateFeedback(i){
   console.log('Argument of generateFeedback', i);
   //this is giving us the value at QUESTIONS[i]
-  const correctAnswer = API_QUESTIONS[i].correctAnswerIndex; 
+  const correctAnswer = QUESTION_ARRAY[i].correctAnswerIndex; 
   console.log('correct answer index', correctAnswer);
   STORE.userChoice = parseInt($('input[name=\'choice\']:checked').val());
   console.log('the typeof userChoice is',  typeof STORE.userChoice);
@@ -210,7 +282,7 @@ function generateFeedback(i){
   return `
     <div class="feedback">
             <h2 class="answer-feedback" id="user-answer">${resultMessage}</h2>
-            <h2 class="answer-feedback" id="correct-answer">The Correct Answer was: ${API_QUESTIONS[i].answers[correctAnswer]}</h2>
+            <h2 class="answer-feedback" id="correct-answer">The Correct Answer was: ${QUESTION_ARRAY[i].answers[correctAnswer]}</h2>
         </div>`;
 }
 
@@ -277,11 +349,18 @@ function renderStartView() {
 //STORE.view = 'questions' page
 function renderQuestionView(){
   //render the current question
-  const question = generateQuestion(STORE.currentQuestion);
-  const currentState = renderCurrentState();
-  //render a submit button
-  // const button = generateButton(STORE.button.class, STORE.button.label);
-  return `${question} ${currentState}`;
+  console.log('question_array is: ',QUESTION_ARRAY);
+  if(QUESTION_ARRAY.length > 0){
+    const question = QUESTION_ARRAY[game1.questionCount - 1].makeQuestionString();
+    const currentState = renderCurrentState();
+    //render a submit button
+    // const button = generateButton(STORE.button.class, STORE.button.label);
+    return `${question} ${currentState}`;
+  }
+  else{
+    return 'Quiz is loading...';
+  }
+
 }
 
 //this function returns a string that outlines the STORE.view = 'feedback' page
@@ -304,7 +383,7 @@ function renderResultsView(){
   //make a start-over button
   return `
   <h1 class='result-title'>You Did It!!!!!</h1>
-  <div class='results'>You got ${STORE.correctAnswerTotal} out of ${API_QUESTIONS.length} right!</div>
+  <div class='results'>You got ${STORE.correctAnswerTotal} out of ${game1.quizLength} right!</div>
   <button class=${STORE.button.class}>${STORE.button.label}</button>
   `;
 }
@@ -312,11 +391,20 @@ function renderResultsView(){
 function renderCurrentState() {
   return `
   <div class="current-state">
-  <p class="current-question">Question: ${STORE.currentQuestion + 1} out of ${API_QUESTIONS.length}</p>
-  <p class="current-score">Score: ${STORE.correctAnswerTotal} out of ${API_QUESTIONS.length}</p>
+  <p class="current-question">Question: ${STORE.currentQuestion + 1} out of ${game1.quizLength}</p>
+  <p class="current-score">Score: ${STORE.correctAnswerTotal} out of ${game1.quizLength}</p>
   </div>`;
 }
 
+// function initializeGame(){
+//   game1.setQuizLengthAndCategory();
+//   if(game1.quizCategory){
+//     game1.getQuestionData();}
+
+// }  else{
+//     return 'Initializing Quiz...';
+//   }
+//   renderPage();
 // event handlers //////////////////////////////////////////////
 
 
@@ -327,7 +415,9 @@ function handleStartButtonClick(){
     event.preventDefault();
     // we'll check if the event handler works
     console.log('the start button was pushed');
+    game1.setQuizLengthAndCategory();
     game1.getQuestionData();
+    // initializeGame();
     //we change the store to the next view
     STORE.view = 'questions';
     //we set question number to index 0
@@ -350,7 +440,7 @@ function handleSubmitAnswerButtonClicked() {
     event.preventDefault();
     //check if the handler works
     console.log('submit answer button was clicked');
-    if(STORE.currentQuestion === API_QUESTIONS.length-1) {
+    if(STORE.currentQuestion === game1.quizLength-1) {
       STORE.button = {class: 'view-results', label: 'View Results'};
     } else {
       STORE.button = {class: 'next-question', label: 'Next Question'};
@@ -369,8 +459,9 @@ function handleSubmitAnswerButtonClicked() {
 // if(input[type="radio"].attr('value') === STORE.userChoice)
 
 
-function handleNextQuestion() {
+function handleNextQuestionButtonClicked() {
   $('.page').on('click', '.next-question', function(event) {
+    game1.getQuestionData();
     STORE.currentQuestion++;
     STORE.view = 'questions';
     STORE.button = {class:'submit-answer', label: 'Submit Answer'};
@@ -378,7 +469,7 @@ function handleNextQuestion() {
   });
 }
 
-function handleViewResults() {
+function handleViewResultsButtonClicked() {
   //on click on button
   //change store view to results
   //change button to 'start over'
@@ -395,14 +486,17 @@ function handleViewResults() {
 
 //reset STORE values to initial
 //re render
-function handleStartOver() {
+function handleStartOverButtonClicked() {
   $('.page').on('click', '.start-over', function(event){
     STORE.view = 'start';
-    STORE.currentQuestion = 0;
+    STORE.currentQuestion = null;
     STORE.button = {class: 'start-button', label: 'Start Quiz' };
     STORE.showFeedback = false;
     STORE.correctAnswerTotal = 0;
-    API_QUESTIONS = [];
+    QUESTION_ARRAY= [];
+    game1.quizLength = null;
+    game1.quizCategory = null;
+
     renderPage();
   }
   );
@@ -419,8 +513,8 @@ $(function () {
   renderPage();
   handleStartButtonClick();
   handleSubmitAnswerButtonClicked();
-  handleNextQuestion();
-  handleViewResults();
-  handleStartOver();
+  handleNextQuestionButtonClicked();
+  handleViewResultsButtonClicked();
+  handleStartOverButtonClicked();
 }
 );
