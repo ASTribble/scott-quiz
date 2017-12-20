@@ -8,7 +8,7 @@ let QUESTION_ARRAY = [];
 class ApiCall {
   constructor(){
     this.sessionToken = null;
-    this.questionCount = null;
+    this.questionCount = 0;
   }
   
   getSessionToken() {
@@ -28,7 +28,6 @@ class ApiCall {
   }
 
   getQuestionData() {
-    this.questionCount = 0;
     console.log('the api question count is: ', this.questionCount);
     console.log('getQuestionData ran');
     const category = STORE.quizCategory;
@@ -45,6 +44,7 @@ class ApiCall {
 
 class Question {
   constructor(questionData){
+    console.log('class Question ran, questionData is', questionData);
     this.questionText = questionData.results[0].question;
     this.difficulty = questionData.results[0].difficulty;
     this.wrongAnswers = questionData.results[0].incorrect_answers;
