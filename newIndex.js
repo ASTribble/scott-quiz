@@ -3,14 +3,12 @@
 /* global $ */
 
 let QUESTION_ARRAY = [];
-let API_QUESTIONS = [];
+// let API_QUESTIONS = [];
 //make API requests for session token and question content
 class ApiCall {
   constructor(){
     this.sessionToken = null;
     this.questionCount = null;
-    this.quizLength = null;
-    this.quizCategory = null;
   }
   
   getSessionToken() {
@@ -21,38 +19,21 @@ class ApiCall {
     });
   }
 
-  _setQuizLength() {
-    console.log('quizLength ran');
-    const length = parseInt($('.quiz-length').val());
-    console.log('quizLength is', length);
-    return length;
-  }
-
-  _setQuizCategory() {
-    console.log('quiz category ran');
-    // select#foo option: checked
-    const category = parseInt($('.select-category option:checked').val());
-    console.log('category id is:', category);
-    return category;
-  }
-
-  setQuizLengthAndCategory(){
-    this.quizLength = this._setQuizLength();
-    this.quizCategory = this._setQuizCategory();
-  }
-
   _makeNewQuestion(questionData){
     console.log('makeNewQuestion ran');
     QUESTION_ARRAY[this.questionCount] = new Question(questionData);
     this.questionCount++;
+    console.log('the api question count after makeNewQuestion is:', this.questionCount);
     renderPage();
   }
 
   getQuestionData() {
     this.questionCount = 0;
+    console.log('the api question count is: ', this.questionCount);
     console.log('getQuestionData ran');
+    const category = STORE.quizCategory;
     const that = this;
-    $.getJSON(`https://opentdb.com/api.php?amount=1&category=${this.quizCategory}&type=multiple&${this.sessionToken}`, function(questionData){
+    $.getJSON(`https://opentdb.com/api.php?amount=1&category=${category}&type=multiple&${this.sessionToken}`, function(questionData){
       that._makeNewQuestion(questionData);
     });
   }
@@ -84,6 +65,7 @@ class Question {
     console.log('makeAnswerArray ran');
     this.answers = [...this.wrongAnswers];
     this.answers.splice(this.correctAnswerIndex, 0, this.correctAnswer);
+    console.log(this.answers);
     return this.answers;
   }
 
@@ -194,6 +176,8 @@ class Question {
 
 const STORE = {
   view: 'start',
+  quizLength: null,
+  quizCategory: null,
   currentQuestion: null,
   button: {class: 'start-button', label: 'Start Quiz'},
   showFeedback: false,
@@ -383,7 +367,7 @@ function renderResultsView(){
   //make a start-over button
   return `
   <h1 class='result-title'>You Did It!!!!!</h1>
-  <div class='results'>You got ${STORE.correctAnswerTotal} out of ${game1.quizLength} right!</div>
+  <div class='results'>You got ${STORE.correctAnswerTotal} out of ${STORE.quizLength} right!</div>
   <button class=${STORE.button.class}>${STORE.button.label}</button>
   `;
 }
@@ -391,8 +375,8 @@ function renderResultsView(){
 function renderCurrentState() {
   return `
   <div class="current-state">
-  <p class="current-question">Question: ${STORE.currentQuestion + 1} out of ${game1.quizLength}</p>
-  <p class="current-score">Score: ${STORE.correctAnswerTotal} out of ${game1.quizLength}</p>
+  <p class="current-question">Question: ${STORE.currentQuestion + 1} out of ${STORE.quizLength}</p>
+  <p class="current-score">Score: ${STORE.correctAnswerTotal} out of ${STORE.quizLength}</p>
   </div>`;
 }
 
@@ -406,7 +390,19 @@ function renderCurrentState() {
 //   }
 //   renderPage();
 // event handlers //////////////////////////////////////////////
+function setQuizCategory() {
+  console.log('quiz category ran');
+  const category = parseInt($('.select-category option:checked').val());
+  console.log('category id is:', category);
+  return category;
+}
 
+function setQuizLength() {
+  console.log('quizLength ran');
+  const length = parseInt($('.quiz-length').val());
+  console.log('quizLength is', length);
+  return length;
+}
 
 function handleStartButtonClick(){
 // this will set-up event handler for original button
@@ -415,7 +411,9 @@ function handleStartButtonClick(){
     event.preventDefault();
     // we'll check if the event handler works
     console.log('the start button was pushed');
-    game1.setQuizLengthAndCategory();
+    STORE.quizLength = setQuizLength();
+    STORE.quizCategory = setQuizCategory();
+    // game1.setQuizLengthAndCategory();
     game1.getQuestionData();
     // initializeGame();
     //we change the store to the next view
@@ -440,7 +438,7 @@ function handleSubmitAnswerButtonClicked() {
     event.preventDefault();
     //check if the handler works
     console.log('submit answer button was clicked');
-    if(STORE.currentQuestion === game1.quizLength-1) {
+    if(STORE.currentQuestion === STORE.quizLength-1) {
       STORE.button = {class: 'view-results', label: 'View Results'};
     } else {
       STORE.button = {class: 'next-question', label: 'Next Question'};
@@ -461,6 +459,7 @@ function handleSubmitAnswerButtonClicked() {
 
 function handleNextQuestionButtonClicked() {
   $('.page').on('click', '.next-question', function(event) {
+    event.preventDefault();
     game1.getQuestionData();
     STORE.currentQuestion++;
     STORE.view = 'questions';
@@ -476,6 +475,7 @@ function handleViewResultsButtonClicked() {
   //change currentQuestion to null
   //output score and 'congatulations....'
   $('.page').on('click', '.view-results', function(event) {
+    event.preventDefault();
     STORE.view = 'results';
     STORE.button = {class:'start-over', label: 'Start Over'};
     STORE.currentQuestion = null;
@@ -488,15 +488,15 @@ function handleViewResultsButtonClicked() {
 //re render
 function handleStartOverButtonClicked() {
   $('.page').on('click', '.start-over', function(event){
+    event.preventDefault();
     STORE.view = 'start';
+    STORE.quizLength = null;
+    STORE.quizCategory = null;
     STORE.currentQuestion = null;
     STORE.button = {class: 'start-button', label: 'Start Quiz' };
     STORE.showFeedback = false;
     STORE.correctAnswerTotal = 0;
     QUESTION_ARRAY= [];
-    game1.quizLength = null;
-    game1.quizCategory = null;
-
     renderPage();
   }
   );
