@@ -3,12 +3,10 @@
 /* global $ */
 
 let QUESTION_ARRAY = [];
-// let API_QUESTIONS = [];
 //make API requests for session token and question content
 class ApiCall {
   constructor(){
     this.sessionToken = null;
-    this.questionCount = 0;
   }
   
   getSessionToken() {
@@ -21,7 +19,7 @@ class ApiCall {
 
   _makeNewQuestion(questionData){
     console.log('makeNewQuestion ran');
-    QUESTION_ARRAY[this.questionCount] = new Question(questionData);
+    QUESTION_ARRAY[STORE.currentQuestion] = new Question(questionData);
     this.questionCount++;
     console.log('the api question count after makeNewQuestion is:', this.questionCount);
     renderPage();
@@ -57,10 +55,7 @@ class Question {
     console.log('randomIndex ran');
     return Math.floor(Math.random() * (this.wrongAnswers.length + 1));
   }
-//  let answersArray = [...incorrectAnswers];
-//   answersArray.splice(randomIndex, 0, correctAnswer);
-//   return answersArray;
-// }
+
   makeAnswerArray() {
     console.log('makeAnswerArray ran');
     this.answers = [...this.wrongAnswers];
@@ -96,82 +91,9 @@ class Question {
     }
   }
 
-// this curly bracketis the end of the Questions class
+// this curly bracket is the end of the Questions class
 }
-// getQuestionData(1);
-// https://opentdb.com/api.php?amount=10&category=17&difficulty=medium
 
-
-// const questionArray = function (data) {
-//   console.log('question array ran', data.results);
-//   API_QUESTIONS = data.results.map(function (result) {
-//     const questionData = result;
-//     const randomIndex = Math.floor(Math.random() * (questionData.incorrect_answers.length + 1));
-//     const question = {
-//     //   questionText: 'What is 2+2?',
-//     //   answers: [1, 2, 3, 4],
-//     //   correctAnswerIndex: 3
-//     // },      
-//       questionText: questionData.question,
-//       difficulty: questionData.difficulty,
-//       wrongAnswers: questionData.incorrect_answers,
-//       correctAnswerIndex: randomIndex,
-//       correctAnswer: questionData.correct_answer,
-//       answers: makeAnswerArray(questionData.incorrect_answers, questionData.correct_answer, randomIndex),
-
-//       // correctAnswerIndex: getRandomIndex(question.incorrect_answers)
-//     };
-//     console.log('the answers are', question.answers);
-//     console.log('the question parts are', question);
-//     return question;
-//   });
-//   renderPage();
-// };
-
-// function makeAnswerArray(incorrectAnswers, correctAnswer, randomIndex) {
-//   console.log('makeAnswerArray ran');
-//   let answersArray = [...incorrectAnswers];
-//   answersArray.splice(randomIndex, 0, correctAnswer);
-//   return answersArray;
-// }
-
-
-
-
-// // make api request for questions
-// // populate quiz using API questions
-// // add user answer tracking to store - maybe not necessary
-// // add dropdown for user question number selection
-// // add dropdown for user category selection
-// // organize for OOP
-
-// const QUESTIONS = [
-//   {
-//     questionText: 'What is 2+2?',
-//     answers: [1, 2, 3, 4],
-//     correctAnswerIndex: 3
-//   },
-//   {
-//     questionText: 'What is 3-2?',
-//     answers: [-10, 2, 1, 32],
-//     correctAnswerIndex: 2
-//   },
-//   {
-//     questionText: 'What is 1x1?',
-//     answers: [1, 0, 100, 11],
-//     correctAnswerIndex: 0
-//   },
-//   {
-//     questionText: 'What is 25/5?',
-//     answers: [125, 2, 5, 50],
-//     correctAnswerIndex: 2
-//   },
-//   {
-//     questionText: 'What is 6^2?',
-//     answers: [36, 12, 6, 90],
-//     correctAnswerIndex: 0
-//   }
-// ];
 // // / views: start, questions, feedback, lastQuestionFeedback, results
 
 const STORE = {
@@ -335,7 +257,7 @@ function renderQuestionView(){
   //render the current question
   console.log('question_array is: ',QUESTION_ARRAY);
   if(QUESTION_ARRAY.length > 0){
-    const question = QUESTION_ARRAY[game1.questionCount - 1].makeQuestionString();
+    const question = QUESTION_ARRAY[STORE.currentQuestion].makeQuestionString();
     const currentState = renderCurrentState();
     //render a submit button
     // const button = generateButton(STORE.button.class, STORE.button.label);
@@ -414,12 +336,15 @@ function handleStartButtonClick(){
     STORE.quizLength = setQuizLength();
     STORE.quizCategory = setQuizCategory();
     // game1.setQuizLengthAndCategory();
+   
+    STORE.currentQuestion = 0;
+   
     game1.getQuestionData();
     // initializeGame();
     //we change the store to the next view
     STORE.view = 'questions';
     //we set question number to index 0
-    STORE.currentQuestion = 0;
+    
     //change the STORE.button to a submit-answer 
     STORE.button = {class:'submit-answer', label: 'Submit Answer'};
     console.log(STORE);
