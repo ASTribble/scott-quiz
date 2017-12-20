@@ -41,6 +41,10 @@ button {
     margin-left: auto;
     margin-right:auto;
     margin-top:30px;
+    margin-bottom: 30px;
+    border:  solid .5px black;
+    background-color: white;
+   
 }
 
 button:hover {
@@ -49,12 +53,15 @@ button:hover {
 }
 
 fieldset{
+    display: inline-block;
     border: none;
+    width: auto;
+    text-align: left;
 }
 
 h2 {
-    font-size: 1.1em;
-    font-weight: normal;
+    font-size: 1.5em;
+    font-weight: bold;
     margin-bottom: .5em;
 }
 .quiz-length {
@@ -64,4 +71,21 @@ h2 {
     margin-right:auto;
     margin-top: 0;
     text-align: center;
+}
+
+.choice-container{
+    content:'';
+    display: inline-block;
+    float: left;
+    clear: both; 
+ 
+}
+
+.initialize-quiz {
+    text-align: center;
+}
+
+.quiz-length {
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
