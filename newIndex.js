@@ -3,6 +3,9 @@
 /* global $ */
 
 let QUESTION_ARRAY = [];
+
+//attempts at OOP classes/////////////////////////////////////////////
+
 //make API requests for session token and question content
 class ApiCall {
   constructor(){
@@ -20,7 +23,6 @@ class ApiCall {
   _makeNewQuestion(questionData){
     console.log('makeNewQuestion ran');
     QUESTION_ARRAY[STORE.currentQuestion] = new Question(questionData);
-    this.questionCount++;
     console.log('the api question count after makeNewQuestion is:', this.questionCount);
     renderPage();
   }
@@ -36,8 +38,6 @@ class ApiCall {
   }
 //this curly bracket is the end of the apiCalls 
 }
-
-
 
 
 class Question {
@@ -94,7 +94,8 @@ class Question {
 // this curly bracket is the end of the Questions class
 }
 
-// // / views: start, questions, feedback, lastQuestionFeedback, results
+
+// initial STORE object ///////////////////////////////////////////////////////
 
 const STORE = {
   view: 'start',
@@ -107,60 +108,26 @@ const STORE = {
   userChoice: null
 };
 
+// functions that set things in the store ////////////////////////////////////////////
+
+function setQuizCategory() {
+  console.log('quiz category ran');
+  const category = parseInt($('.select-category option:checked').val());
+  console.log('category id is:', category);
+  return category;
+}
+
+function setQuizLength() {
+  console.log('quizLength ran');
+  const length = parseInt($('.quiz-length').val());
+  console.log('quizLength is', length);
+  return length;
+}
 
 
 // // template /////////////////////////////////////////////////////
 
-// function generateQuestion(i){
-//   //this pulls out the object at QUESTIONS at index i
-//   const question = API_QUESTIONS[i];
-//   if(API_QUESTIONS.length > 0){
-//     console.log('QUESTIONS[i] =', question.answers);
-//     //this is going to return a string with html markers with auto-filled
-//     //questionText and answers
-//     const answerBlock = makeAnswerBlock(question.answers);
-//     console.log(answerBlock);
-//     return `
-//       <form class='question' id='question'>
-//         <h2>${question.questionText}</h2>
-//         <fieldset form='question' class='answers'>
-//         ${answerBlock}
-//         </fieldset>
-//         ${generateButton(STORE.button.class, STORE.button.label)}
-//       </form>
-//     `;
-//   } 
-//   else{
-//     return 'Quiz is Loading...';
-//   }
-// }
 
-
-// return `
-//   <form>
-//   <div class="answer-choice">${question.questionText}</div>
-//   <input type="radio" name="choice" value="0" class="choice" id="choice-1" required>
-//     <label for="choice-1">${question.answers[0]}</label>
-//   <input type="radio" name="choice" value="1" class="choice" id="choice-2" required>
-//     <label for="choice-2">${question.answers[1]}</label>
-//   <input type="radio" name="choice" value="2" class="choice" id="choice-3" required>
-//     <label for="choice-3">${question.answers[2]}</label>
-//   <input type="radio" name="choice" value="3" class="choice" id="choice-4" required>
-//     <label for="choice-4">${question.answers[3]}</label>      
-// </div>
-// ${generateButton(STORE.button.class, STORE.button.label)}
-// </form>
-// `;
-// }
-
-//this will return a string of answer choices based on the length of the given answer array
-// function makeAnswerBlock(answers) {
-//   const answersString = answers.map(function(answer){
-//     return `<input type="radio" name="choice" value=${answers.indexOf(answer)} class="choice" id="choice-${answers.indexOf(answer)}" required>
-//     <label for="choice-${answers.indexOf(answer)}">${answer}</label>`;
-//   });
-//   return answersString.join('');
-// } 
 
 
 //this creates a button with a specific class and text
@@ -214,19 +181,11 @@ function renderPage() {
   if (STORE.view === 'feedback' && STORE.showFeedback === true) {
     $('.page').html(renderFeedbackView());
   }
-  // if (STORE.view === 'lastQuestionFeedback') {
-  //   $('form').html(renderlastQuestionFeedbackView());
-  // }
   if (STORE.view === 'results') {
     $('.page').html(renderResultsView());
   }
 }
   
-// <select name="text"> <!--Supplement an id here instead of using 'text'-->
-//   <option value="value1">Value 1</option>
-//   <option value="value2" selected>Value 2</option>
-//   <option value="value3">Value 3</option>
-// </select>
 
 function renderStartView() {
   // render title and button
@@ -302,29 +261,7 @@ function renderCurrentState() {
   </div>`;
 }
 
-// function initializeGame(){
-//   game1.setQuizLengthAndCategory();
-//   if(game1.quizCategory){
-//     game1.getQuestionData();}
-
-// }  else{
-//     return 'Initializing Quiz...';
-//   }
-//   renderPage();
-// event handlers //////////////////////////////////////////////
-function setQuizCategory() {
-  console.log('quiz category ran');
-  const category = parseInt($('.select-category option:checked').val());
-  console.log('category id is:', category);
-  return category;
-}
-
-function setQuizLength() {
-  console.log('quizLength ran');
-  const length = parseInt($('.quiz-length').val());
-  console.log('quizLength is', length);
-  return length;
-}
+// event handlers /////////////////////////////////////////////
 
 function handleStartButtonClick(){
 // this will set-up event handler for original button
@@ -335,52 +272,43 @@ function handleStartButtonClick(){
     console.log('the start button was pushed');
     STORE.quizLength = setQuizLength();
     STORE.quizCategory = setQuizCategory();
-    // game1.setQuizLengthAndCategory();
-   
     STORE.currentQuestion = 0;
-   
-    game1.getQuestionData();
-    // initializeGame();
-    //we change the store to the next view
     STORE.view = 'questions';
-    //we set question number to index 0
-    
-    //change the STORE.button to a submit-answer 
-    STORE.button = {class:'submit-answer', label: 'Submit Answer'};
+    STORE.button = { class: 'submit-answer', label: 'Submit Answer' };
+    game1.getQuestionData();
     console.log(STORE);
-  
-    //then we re-render the page for the new store 
-    //to show the first question page
+   
     renderPage();
   });
 }
 
+//on click on button
+//change store view to feedback
+//if it's the last question change the button to voew results
+//else change the button to nest-question
+//change button to 'view-results'
+//change store showFeedback to true
+// render the page
 
 function handleSubmitAnswerButtonClicked() {
-  //listen for the .submit-answer button click
   $('.page').on('submit', 'form', function (event) {
-    //prevent the default behavior
+
     event.preventDefault();
-    //check if the handler works
     console.log('submit answer button was clicked');
+
     if(STORE.currentQuestion === STORE.quizLength-1) {
       STORE.button = {class: 'view-results', label: 'View Results'};
     } else {
       STORE.button = {class: 'next-question', label: 'Next Question'};
       console.log(STORE);
     }
-    //change STORE.view to feedback
     STORE.view = 'feedback';
     //we don't change the STORE.currentQuestion b/c we want it to stay 
-    // we change STORE.showFeedback to true
     STORE.showFeedback = true;
-    // we change the STORE.button to 'next-question'
+
     renderPage();
   });
 }
-
-// if(input[type="radio"].attr('value') === STORE.userChoice)
-
 
 function handleNextQuestionButtonClicked() {
   $('.page').on('click', '.next-question', function(event) {
@@ -393,12 +321,13 @@ function handleNextQuestionButtonClicked() {
   });
 }
 
+//on click on button
+//change store view to results
+//change button to 'start over'
+//change currentQuestion to null
+//output score and 'congatulations....'
+
 function handleViewResultsButtonClicked() {
-  //on click on button
-  //change store view to results
-  //change button to 'start over'
-  //change currentQuestion to null
-  //output score and 'congatulations....'
   $('.page').on('click', '.view-results', function(event) {
     event.preventDefault();
     STORE.view = 'results';
@@ -411,6 +340,7 @@ function handleViewResultsButtonClicked() {
 
 //reset STORE values to initial
 //re render
+
 function handleStartOverButtonClicked() {
   $('.page').on('click', '.start-over', function(event){
     event.preventDefault();
@@ -425,11 +355,8 @@ function handleStartOverButtonClicked() {
     renderPage();
   }
   );
-}
-
-
-const game1 = new ApiCall;
-
+}//this instantiates a new ApiCall
+const game1 = new ApiCall(STORE);
 
 //this is an anonymous function that will run automatically
 //after the whole document is loaded.  that's why it's at the end
